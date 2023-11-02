@@ -28,7 +28,7 @@ int main(int argc, char **argv)
     strcpy(buffer, input);
     guess = atoi(buffer) % 2;
     
-    printf("The answer was %d!!\n);
+    printf("The answer was %d!!\n", answer);
 
     if (guess == (answer % 2))
         printf("You are correct!\n");
