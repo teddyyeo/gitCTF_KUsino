@@ -28,10 +28,7 @@ int main(int argc, char **argv)
     strcpy(buffer, input);
     guess = atoi(buffer) % 2;
     
-    if ((answer % 2) == 1)
-        puts("\nThe answer is odd!\n");
-    else
-        puts("\nThe answer is even!\n");
+    printf("The answer was %d!!\n);
 
     if (guess == (answer % 2))
         printf("You are correct!\n");
