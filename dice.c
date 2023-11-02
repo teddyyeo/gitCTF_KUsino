@@ -21,14 +21,14 @@ int main(void)
     dice1 = rand() % 6 + 1;
     dice2 = rand() % 6 + 1;
     sum = dice1 + dice2;
-
     printf("peek sum: %d\n", sum);
-    gets(input);
-    strcpy(predict, input);
 
     // 주사위 결과 예측
     printf("Guess dice1 + dice2: ");
-    scanf("%s", predict); // 버퍼 오버플로우 취약점
+
+    gets(input);
+    strcpy(predict, input);
+
     if (atoi(predict) == sum)
     {
         printf("You win!\n");
