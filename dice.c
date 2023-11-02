@@ -7,9 +7,7 @@ int sum = 0;
 char input[128];
 
 void flag(void){
-    puts("hello1\n");
-    puts("hello2\n");
-    puts("hello3\n");
+    printf("You win!!!\n");
     exit(0);
 }
 
@@ -24,6 +22,7 @@ int main(void)
     dice2 = rand() % 6 + 1;
     sum = dice1 + dice2;
 
+    printf("peek sum: %d\n", sum);
     gets(input);
     strcpy(predict, input);
 
@@ -36,7 +35,7 @@ int main(void)
     }
     else
     {
-        printf("You loose!\n");
+        printf("Try agagin.\n");
     }
 
     return 0;
