@@ -23,17 +23,17 @@ int main(int argc, char **argv)
     puts("Please choose between odd and even.(Type '1' or '2')\n");
     printf("1. Odd\n2. Even\nYour guess: ");
 
-    answer = rand() % 2;
+    answer = rand() % 8 + 1;
     gets(input);
     strcpy(buffer, input);
     guess = atoi(buffer) % 2;
-
-    if (guess == 1)
+    
+    if ((answer % 2) == 1)
         puts("\nThe answer is odd!\n");
     else
         puts("\nThe answer is even!\n");
 
-    if (guess == answer)
+    if (guess == (answer % 2))
         printf("You are correct!\n");
     else
         printf("You are wrong, too bad\n");
