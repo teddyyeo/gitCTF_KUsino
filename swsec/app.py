@@ -193,6 +193,8 @@ def login():
                 return redirect("/login")
         hash_pw = hashlib.sha256(pw.encode()).hexdigest()
         program = './login'
+
+        arguments = [id, hash_pw]
         process = subprocess.Popen([program] + arguments,stdin=subprocess.PIPE,stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = process.communicate(input = b'2')
         result = stdout.decode('utf-8').split('\n')
@@ -236,6 +238,7 @@ def register():
         hash_pw = hashlib.sha256(pw.encode()).hexdigest()
         print(id,hash_pw)
         program = './login'
+        arguments = [id, hash_pw]
         process = subprocess.Popen([program] + arguments,stdin=subprocess.PIPE,stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = process.communicate(input = b'1')
         print(stdout,stderr)
