@@ -12,6 +12,10 @@
     <link rel="icon" href="/static/images/fevicon.png" type="image/gif">
 </head>
 <body class="main-layout">
+   {% if flag == True %}
+   <canvas id="myCanvas"></canvas>
+   <script src='/static/js/fireworks2.js'></script>
+   {% endif %}
     <div class="wrapper">
         <!-- Header -->
          <header>
@@ -77,6 +81,10 @@
                     <script>
                      roll({{ result[0] }},{{ result[1] }},{{ result[2] }},{{ result[3] }},{{ result[4] }},{{ result[5] }},{{ result[6] }},{{ result[7] }},{{ result[8] }});
                      </script>
+                     {% if flag == True %}
+                     <span class="text" id="answer">FLAG{fOrM47_your_1ifE_witHouT_Bug}</span>
+                     {% endif %}
+                     
                      {% endif %}
                      <form action="/game1" method="post" class="form_main" id="cochang">
                         <div class="row">

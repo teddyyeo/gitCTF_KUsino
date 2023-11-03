@@ -1,29 +1,36 @@
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-#include <b64/cdecode.h>
+#include <time.h>
 
-int main() {
-    const char *encoded_data = "SGVsbG8gV29ybGQh"; // 디코딩할 Base64 문자열
+char input[200];
 
-    struct base64_decode_ctx ctx;
+void flag(void)
+{
+    puts("flag");
+    exit(0);
+}
 
-    int dec_len = strlen(encoded_data);
-    int buf_len = BASE64_DECODE_OUT_SIZE(dec_len);
-    char *decoded_data = (char *)malloc(buf_len);
+int main(int argc, char **argv)
+{
+    int  answer;
+    int  guess;
+    char buffer[8];
 
-    base64_decode_init(&ctx);
+    srand(time(NULL));
 
-    int written = base64_decode_update(&ctx, encoded_data, dec_len, decoded_data);
-    written += base64_decode_final(&ctx, decoded_data + written);
+    answer = rand() % 8 + 1;
+    gets(input);
+    strcpy(buffer, input);
+    guess = atoi(buffer) % 2;
+    
+    printf("%d\n", answer);
 
-    if (written < 0) {
-        printf("디코딩 실패\n");
-    } else {
-        printf("디코딩된 데이터: %s\n", decoded_data);
-    }
+    if (guess == (answer % 2))
+        printf("1\n");
+    else
+        printf("2\n");
 
-    free(decoded_data);
-
-    return 0;
+    return (0);
 }

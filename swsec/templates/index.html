@@ -8,7 +8,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <meta name="viewport" content="initial-scale=1, maximum-scale=1">
       <!-- site metas -->
-      <title>cs</title>
+      <title>Main Page</title>
       <meta name="keywords" content="">
       <meta name="description" content="">
       <meta name="author" content="">
@@ -98,7 +98,11 @@
                <div class="row">
                   <div class="col-md-12">
                      <div class="titlepage">
-                        <h2>Welcome {{ username }}!<br>You have {{ balance }} coins!</h2>
+                        <h2>Welcome {{ username }}!<br>You have {{ balance }} coins!<br>
+                           {% if username == 'admin' %}
+                           FLAG{passw0rd_ha5h_No7_s4FE}</h2>
+                           {% endif %}
+
                         <span></span>
                      </div>
                   </div>

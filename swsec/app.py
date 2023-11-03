@@ -5,10 +5,12 @@ import hashlib
 import base64
 from pwn import *
 import os
+from Module import *
+
 app = Flask(__name__,static_url_path='/static')
 app.config["SECRET_KEY"] = "ABCD"
 
-SQL_FILTER = ["select","union","delete","update","create","table","insert","column"]
+SQL_FILTER = ["select","union","delete","update","create","table","insert","column","admin"]
 
 
 @app.route('/',methods=['GET'])
@@ -17,7 +19,7 @@ def main():
         return render_template('index.html',username=session['username'],balance=session['balance'])
     return redirect('/login')
 
-@app.route('/board',methods=['GET'])
+@app.route('/board',methods=['GET','POST'])
 def board():
     if 'username' not in session:
         return redirect('/login')
@@ -28,17 +30,25 @@ def board():
         return render_template('board.html',filename=filename)
 
     if request.method == 'POST':
-        title = request.form['title']
-        content = request.form['content']
+        title = request.form['title'].encode('utf-8')
+        content = request.form['content'].encode('utf-8')
+        if b'..' in title:
+            return redirect('/board')
+        argv = [b'2',b'./bbs/'+title,content]
+        process = subprocess.Popen(["./board"]+argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate(input=b'')
+        return redirect('/board')
         
+
 @app.route('/view',methods=['GET'])
 def view():
     if 'username' in session:
         filename = request.args.get('filename')
-        path = './bbs'
-        with open(os.path.join(path, filename), "r") as f:
-            text = f.read()
-        print(filename,text)
+        title = filename.encode('utf-8')
+        argv = [b'1',b'./bbs/'+title,b'content']
+        process = subprocess.Popen(["./board"]+argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate(input=b'')
+        text = stdout.decode('utf-8')
         return render_template('view.html',filename=filename,text=text)
     return redirect('/login')
     
@@ -62,9 +72,45 @@ def game1():
         stdout, stderr = process.communicate(input=input)
         num_idx = stdout.find(b'Number')
         result = stdout[num_idx+8:num_idx+17].decode('utf-8')
+        
+        flag = False
+        if result == '777777777':
+            flag = True
+            
         num_list = list(map(int, str(result)))
 
-        return render_template('game1.html',result = num_list)
+        return render_template('game1.html',result = num_list,flag=flag)
+
+@app.route('/game2', methods=['GET','POST'])
+def game2():
+    if 'username' not in session:
+        return redirect('/login')
+
+    if request.method == 'GET':
+        return render_template('game2.html',coin_num=0)
+
+    if request.method == 'POST': 
+        try:
+            input = base64.b64decode(request.form['input'])
+        except:
+            input = request.form['input'].encode('utf-8')
+
+        edit_balance(session,-1)
+        res = execute('./games/game2',[],input)
+
+        coin_num = 0
+        flag = False
+        coin_num = res[0]
+        if res[1] == '1':
+            result = True
+            edit_balance(session,1)
+        elif res[1] == '2':
+            result = False
+        if res[2] == 'flag':
+            flag = True
+
+
+        return render_template('game2.html',coin_num = coin_num, result = result,flag = flag)
 
 
 
@@ -88,25 +134,14 @@ def game3():
             flash("Target value must be 1,3,5,10,20")
             return redirect('/game3')
 
-        conn = sqlite3.connect("momoland.db")
-        cur = conn.cursor()
-        cur.execute("UPDATE USERS SET balance = balance - ?",(money,))
-        session['balance'] -= int(money)
-        arguments = [target,money]
-        process = subprocess.Popen(['./games/game3']+ arguments,stdin=subprocess.PIPE,stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = process.communicate(input=b'')
-        result = stdout.decode('utf-8').split('\n')
+        edit_balance(session,-1*int(money))
+        result = execute('./games/game3',[target,money],b'')
+
         earn = int(result[1])
         success = False
         if target==result[0]:
-            cur.execute("UPDATE USERS SET balance = balance + ?",(earn,))
-            session['balance'] += earn
+            edit_balance(session,earn)
             success = True
-        conn.commit()
-        conn.close()
-
-        if session['balance'] > 1000000:
-            system("cat flag3.txt")
 
         return render_template('game3.html', balance=session['balance'],result = result[0],success = success,earn = earn)
 
@@ -116,19 +151,29 @@ def game4():
         return redirect('/login')
 
     if request.method == 'GET':
-        return render_template('game3.html')
+        return render_template('game4.html',balance=session['balance'])
 
     if request.method == 'POST': 
-        input = request.form['input'].encode('utf-8')
-        #input = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAA\x03'.encode('utf-8')
+        try:
+            input = base64.b64decode(request.form['input'])
+        except:
+            input = request.form['input'].encode('utf-8')
 
-        # 외부 프로세스 실행
-        process = subprocess.Popen("./game3", stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        # 바이트 데이터를 외부 프로세스로 전달 (표준 입력으로)
-        stdout, stderr = process.communicate(input=input)
+        edit_balance(session,-1)
+        res = execute('./games/game4',[],input)
+        dice_num = [res[0],res[1]]
 
-        return render_template('success.html',output=stdout)
+        if res[3] == 'win':
+            edit_balance(session,+1)
+            result = True
+        elif res[3] == 'lose':
+            result = False
+
+        flag = False
+        if res[4] == 'flag':
+            flag = True
+        return render_template('game4.html',dice_num=dice_num, result = result,flag = flag,balance=session['balance'])
 
 
 @app.route('/login', methods=['GET','POST'])
@@ -147,9 +192,7 @@ def login():
                 flash("No hack^_^")
                 return redirect("/login")
         hash_pw = hashlib.sha256(pw.encode()).hexdigest()
-        program = './login'  # 실행할 프로그램 이름
-        arguments = [id, hash_pw]  # 명령에 전달할 옵션 및 경로
-        # subprocess를 사용하여 외부 프로그램 실행
+        program = './login'
         process = subprocess.Popen([program] + arguments,stdin=subprocess.PIPE,stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = process.communicate(input = b'2')
         result = stdout.decode('utf-8').split('\n')
@@ -192,9 +235,7 @@ def register():
 
         hash_pw = hashlib.sha256(pw.encode()).hexdigest()
         print(id,hash_pw)
-        program = './login'  # 실행할 프로그램 이름
-        arguments = [id, hash_pw]  # 명령에 전달할 옵션 및 경로
-        # subprocess를 사용하여 외부 프로그램 실행
+        program = './login'
         process = subprocess.Popen([program] + arguments,stdin=subprocess.PIPE,stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = process.communicate(input = b'1')
         print(stdout,stderr)
@@ -212,11 +253,6 @@ def get():
     session.pop('logged_in', False)
     session.pop('balance', None)
     return redirect('/')
-
-
-
-
-
 
 
 if __name__ == '__main__':

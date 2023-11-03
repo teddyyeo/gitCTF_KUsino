@@ -1032,5 +1032,10 @@ a.article:hover {
     color: #fff !important;
 }
 
+#myCanvas {
+    position: absolute;
+    z-index: 3000;
+  }
+
 
 
