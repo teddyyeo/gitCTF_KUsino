@@ -97,7 +97,7 @@ def game2():
 
         edit_balance(session,-1)
         res = execute('./games/game2',[],input)
-
+        print(input,res)
         coin_num = 0
         flag = False
         coin_num = res[0]
@@ -257,14 +257,8 @@ def get():
     session.pop('balance', None)
     return redirect('/')
 
-@app.errorhandler(404)
-def not_found(error):
-    flash("404 not found")
-    return redirect("/")
-
 @app.errorhandler(500)
 def internal_server_error(e):
-    # 여기에 처리할 내용 작성
     flash("500 internal server error.. Please enter valid input")
     return redirect(request.referrer)
 
